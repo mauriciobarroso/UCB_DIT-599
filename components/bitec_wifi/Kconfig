@@ -1,0 +1,14 @@
+menu "bitec Wi-Fi Configuration"
+
+    config BITEC_WIFI_POP_PIN
+        string "Proof of possesion"
+        help
+            Proof of possesion string. This is relevant only for protocom security 1.
+
+    config BITEC_WIFI_SSID_PREFIX
+        string "SSID prefix"
+        default "PROV_"
+        help
+        	AP SSID prefix. This is concatenated with the MAC number to build the AP SSID.
+
+endmenu

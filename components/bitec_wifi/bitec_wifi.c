@@ -1,38 +1,32 @@
 /*
- * digihome_wifi.c
+ * bitec_wifi.c
  *
- * Created on: Jan 19, 2021
+ * Created on: Mar 23, 2021
  * Author: Mauricio Barroso Benavides
  */
 
 /* inclusions ----------------------------------------------------------------*/
 
-#include "include/digihome_wifi.h"
+#include "include/bitec_wifi.h"
 
 /* macros --------------------------------------------------------------------*/
-
-#define POP_PIN					"abcd1234"		/*!< Proff of possession PIN */
-#define DEFAULT_SERVICE_NAME	"default_ssid"	/*!< Default service name */
 
 /* typedef -------------------------------------------------------------------*/
 
 /* internal data declaration -------------------------------------------------*/
 
-static const char * TAG = "digihome_wifi";
+static const char * TAG = "bitec_wifi";
 
 /* external data declaration -------------------------------------------------*/
 
 /* internal functions declaration --------------------------------------------*/
 
-//static void wifi_event_handler(void * arg, esp_event_base_t event_base, int event_id, void * event_data);
-//static void ip_event_handler(void * arg, esp_event_base_t event_base, int event_id, void * event_data);
-//static void prov_event_handler(void * arg, esp_event_base_t event_base, int event_id, void * event_data);
-static esp_err_t custom_prov_data_handler(uint32_t session_id, const uint8_t * inbuf, ssize_t inlen, uint8_t ** outbuf, ssize_t * outlen, void * priv_data);
+static esp_err_t custom_prov_data_handler(uint32_t session_id, const uint8_t * inbuf, ssize_t inlen, uint8_t * * outbuf, ssize_t * outlen, void * priv_data);
 static void get_device_service_name(char * service_name, size_t max);
 
 /* external functions definition ---------------------------------------------*/
 
-esp_err_t digihome_wifi_init(digihome_wifi_t * const me)
+esp_err_t bitec_wifi_init(bitec_wifi_t * const me)
 {
     /* Initialize stack TCP/IP */
     ESP_ERROR_CHECK(esp_netif_init());
@@ -73,7 +67,7 @@ esp_err_t digihome_wifi_init(digihome_wifi_t * const me)
 
 	if(provisioned)
 	{
-		ESP_LOGI(TAG, "Already provisioned, connecting to AP");
+		ESP_LOGI(TAG, "Already provisioned. Connecting to AP...");
 
 		/* We don't need the manager as device is already provisioned,
 		* so let's release it's resources */
@@ -97,11 +91,11 @@ esp_err_t digihome_wifi_init(digihome_wifi_t * const me)
 		if(service_name != NULL)
 		{
 			get_device_service_name(service_name, 12);
-			ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(WIFI_PROV_SECURITY_1, (const char *)POP_PIN, service_name, NULL));
+			ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(WIFI_PROV_SECURITY_1, strlen(CONFIG_BITEC_WIFI_POP_PIN) > 1 ? CONFIG_BITEC_WIFI_POP_PIN : NULL, service_name, NULL));
 			free(service_name);
 		}
 		else
-			ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(WIFI_PROV_SECURITY_1, (const char *)POP_PIN, DEFAULT_SERVICE_NAME, NULL));
+			ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(WIFI_PROV_SECURITY_1, strlen(CONFIG_BITEC_WIFI_POP_PIN) > 1 ? CONFIG_BITEC_WIFI_POP_PIN : NULL, "PROV_DEFAULT", NULL));
 
 		/* Register previous created endpoint */
 		wifi_prov_mgr_endpoint_register("custom-data", custom_prov_data_handler, NULL);
@@ -120,7 +114,7 @@ static void get_device_service_name(char *service_name, size_t max)
     snprintf(service_name, max, "%s%02X%02X%02X", ssid_prefix, eth_mac[3], eth_mac[4], eth_mac[5]);
 }
 
-static esp_err_t custom_prov_data_handler(uint32_t session_id, const uint8_t * inbuf, ssize_t inlen, uint8_t ** outbuf, ssize_t * outlen, void * priv_data)
+static esp_err_t custom_prov_data_handler(uint32_t session_id, const uint8_t * inbuf, ssize_t inlen, uint8_t * * outbuf, ssize_t * outlen, void * priv_data)
 {
     if (inbuf)
     	ESP_LOGI(TAG, "Received data: %.*s", inlen, (char *)inbuf);

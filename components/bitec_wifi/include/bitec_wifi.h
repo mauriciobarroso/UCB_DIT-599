@@ -1,12 +1,12 @@
 /*
- * digihome_wifi.h
+ * bitec_wifi.h
  *
- * Created on: Jan 19, 2021
+ * Created on: Mar 23, 2021
  * Author: Mauricio Barroso Benavides
  */
 
-#ifndef _DIGIHOME_WIFI_H_
-#define _DIGIHOME_WIFI_H_
+#ifndef _bitec_WIFI_H_
+#define _bitec_WIFI_H_
 
 /* inclusions ----------------------------------------------------------------*/
 
@@ -45,14 +45,14 @@ typedef struct
 	wifi_event_handler_t wifi_event_handler;
 	ip_event_handler_t ip_event_handler;
 	prov_event_handler_t prov_event_handler;
-} digihome_wifi_t;
+} bitec_wifi_t;
 
 /* external data declaration -------------------------------------------------*/
 
 
 /* external functions declaration --------------------------------------------*/
 
-esp_err_t digihome_wifi_init(digihome_wifi_t * const me);
+esp_err_t bitec_wifi_init(bitec_wifi_t * const me);
 
 /* cplusplus -----------------------------------------------------------------*/
 
@@ -64,4 +64,4 @@ esp_err_t digihome_wifi_init(digihome_wifi_t * const me);
 
 /* end of file ---------------------------------------------------------------*/
 
-#endif /* #ifndef _DIGIHOME_WIFI_H_ */
+#endif /* #ifndef _BITEC_WIFI_H_ */
