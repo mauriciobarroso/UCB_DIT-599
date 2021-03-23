@@ -26,7 +26,7 @@
 
 static const char * TAG = "app";
 
-static TaskHandle_t reconnect_handle;
+static TaskHandle_t reconnect_handle = NULL;
 static digihome_wifi_t wifi;
 
 /* function declaration ------------------------------------------------------*/
@@ -66,20 +66,29 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int event
 	switch(event_id)
 	{
 		case WIFI_EVENT_STA_START:
+			ESP_LOGI(TAG, "WIFI_EVENT_STA_START");
 			ws2812_led_set_hsv(240, 100, 25);	/* Set LED blue */
 
 			break;
 
 		case WIFI_EVENT_STA_DISCONNECTED:
+			ESP_LOGI(TAG, "WIFI_EVENT_STA_DISCONNECTED");
 			/* Create task to reconnect to AP and set RGB led in blue color */
-//			xTaskCreate(reconnect_task, "Reconnect Task", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 1, &reconnect_handle);
+			if(reconnect_handle == NULL)
+				xTaskCreate(reconnect_task, "Reconnect Task", configMINIMAL_STACK_SIZE * 3, NULL, tskIDLE_PRIORITY + 1, &reconnect_handle);
+
 	        ws2812_led_set_hsv(240, 100, 25);
 
 			break;
 
 		case WIFI_EVENT_STA_CONNECTED:
+			ESP_LOGI(TAG, "WIFI_EVENT_STA_CONNECTED");
 			/* Delete task to reconnect to AP */
-//			vTaskDelete(reconnect_handle);
+			if(reconnect_handle != NULL)
+			{
+				vTaskDelete(reconnect_handle);
+				reconnect_handle = NULL;
+			}
 
 			break;
 
@@ -94,6 +103,7 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base, int event_i
 	{
 		case IP_EVENT_STA_GOT_IP:
 		{
+			ESP_LOGI(TAG, "IP_EVENT_STA_GOT_IP");
 			ip_event_got_ip_t * event = (ip_event_got_ip_t*) event_data;
 			ESP_LOGI(TAG, "Connected with IP Address:" IPSTR, IP2STR(&event->ip_info.ip));
 
@@ -112,6 +122,7 @@ static void prov_event_handler(void* arg, esp_event_base_t event_base, int event
 	switch(event_id)
 	{
 		case WIFI_PROV_START:
+			ESP_LOGI(TAG, "WIFI_PROV_START");
 			ESP_LOGI(TAG, "Provisioning started");
 
 			ws2812_led_set_hsv(0, 100, 25);	/* Set LED red */
@@ -120,6 +131,7 @@ static void prov_event_handler(void* arg, esp_event_base_t event_base, int event
 
 		case WIFI_PROV_CRED_RECV:
 		{
+			ESP_LOGI(TAG, "WIFI_PROV_CRED_RECV");
 			wifi_sta_config_t * wifi_sta_cfg = (wifi_sta_config_t *)event_data;
 			ESP_LOGI(TAG, "Credentials received, SSID: %s & Password: %s",
 					(const char *) wifi_sta_cfg->ssid, (const char *) wifi_sta_cfg->password);
@@ -131,6 +143,7 @@ static void prov_event_handler(void* arg, esp_event_base_t event_base, int event
 
 		case WIFI_PROV_CRED_FAIL:
 		{
+			ESP_LOGI(TAG, "WIFI_PROV_CRED_FAIL");
 			wifi_prov_sta_fail_reason_t *reason = (wifi_prov_sta_fail_reason_t *)event_data;
 			ESP_LOGE(TAG, "Provisioning failed!\n\tReason : %s"
 			"\n\tPlease reset to factory and retry provisioning",
@@ -140,10 +153,12 @@ static void prov_event_handler(void* arg, esp_event_base_t event_base, int event
 		}
 
 		case WIFI_PROV_CRED_SUCCESS:
+			ESP_LOGI(TAG, "WIFI_PROV_CRED_SUCCESS");
 			ESP_LOGI(TAG, "Provisioning successful");
 			break;
 
 		case WIFI_PROV_END:
+			ESP_LOGI(TAG, "WIFI_PROV_END");
 			/* De-initialize manager once provisioning is finished */
 			wifi_prov_mgr_deinit();
 
@@ -167,7 +182,7 @@ static void reconnect_task(void * arg)
 		esp_wifi_connect();
 
 		/* Wait 30 sec to try reconnecting */
-		vTaskDelayUntil(&last_time_wake, pdMS_TO_TICKS(30000));	/* todo: put the time in macros */
+		vTaskDelayUntil(&last_time_wake, pdMS_TO_TICKS(10000));	/* todo: put the time in macros */
 	}
 }
 
