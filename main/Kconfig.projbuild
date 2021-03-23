@@ -1,0 +1,19 @@
+menu "Application Configuration"
+
+    config EXAMPLE_FIRMWARE_UPG_URL
+        string "Firmware Upgrade URL"
+        default "https://firmware.digihome.technology:8444/firmware/get?"
+        help
+            URL of server which hosts the firmware image.
+
+    config EXAMPLE_FIRMWARE_UPGRADE_URL_FROM_STDIN
+        bool
+        default y if EXAMPLE_FIRMWARE_UPG_URL = "FROM_STDIN"
+            
+    config EXAMPLE_DEVICE_ID
+        string "ESP Device ID"
+        default "fc97e0d4-1623-49e4-950f-3fb3594ea8ba"
+        help
+            ESP32-S2 device ID in UUID form.
+
+endmenu

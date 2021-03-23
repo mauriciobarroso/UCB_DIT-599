@@ -1,0 +1,1 @@
+COMPONENT_EMBED_TXTFILES := ../certs/client.crt ../certs/client.key ../certs/ca.crt ../certs/cert.pem
