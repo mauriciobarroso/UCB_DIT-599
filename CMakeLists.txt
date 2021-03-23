@@ -4,3 +4,8 @@ cmake_minimum_required(VERSION 3.5)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(smartLight)
+
+target_add_binary_data(${CMAKE_PROJECT_NAME}.elf "certs/client.crt" TEXT)
+target_add_binary_data(${CMAKE_PROJECT_NAME}.elf "certs/client.key" TEXT)
+target_add_binary_data(${CMAKE_PROJECT_NAME}.elf "certs/ca.crt" TEXT)
+target_add_binary_data(${CMAKE_PROJECT_NAME}.elf "certs/cert.pem" TEXT)
