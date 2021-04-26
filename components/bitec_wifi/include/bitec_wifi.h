@@ -15,6 +15,7 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/event_groups.h"
 
 #include "esp_err.h"
 
@@ -34,6 +35,20 @@ extern "C" {
 
 /* macros --------------------------------------------------------------------*/
 
+/* Wi-Fi provisioning event bits */
+#define WIFI_PROV_START_BIT				BIT0
+#define WIFI_PROV_CRED_RECV_BIT			BIT1
+#define WIFI_PROV_CRED_FAIL_BIT			BIT2
+#define WIFI_PROV_CRED_SUCCESS_BIT		BIT3
+#define WIFI_PROV_END_BIT				BIT4
+
+/* IP event bits */
+#define IP_EVENT_STA_GOT_IP_BIT			BIT5
+
+/* Wi-Fi event bits */
+#define WIFI_EVENT_STA_CONNECTED_BIT	BIT6
+#define WIFI_EVENT_STA_DISCONNECTED_BIT	BIT7
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef void (* wifi_event_handler_t)(void *, esp_event_base_t, int32_t, void *);
@@ -42,6 +57,7 @@ typedef void (* prov_event_handler_t)(void *, esp_event_base_t, int32_t, void *)
 
 typedef struct
 {
+	EventGroupHandle_t event_group;
 	wifi_event_handler_t wifi_event_handler;
 	ip_event_handler_t ip_event_handler;
 	prov_event_handler_t prov_event_handler;

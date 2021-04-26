@@ -1,19 +1,65 @@
 menu "Application Configuration"
 
-    config EXAMPLE_FIRMWARE_UPG_URL
+    config APPLICATION_FIRMWARE_UPG_URL
         string "Firmware Upgrade URL"
         default "https://firmware.digihome.technology:8444/firmware/get?"
         help
             URL of server which hosts the firmware image.
 
-    config EXAMPLE_FIRMWARE_UPGRADE_URL_FROM_STDIN
+    config APPLICATION_FIRMWARE_UPGRADE_URL_FROM_STDIN
         bool
         default y if EXAMPLE_FIRMWARE_UPG_URL = "FROM_STDIN"
             
-    config EXAMPLE_DEVICE_ID
+    config APPLICATION_DEVICE_ID
         string "ESP Device ID"
         default "fc97e0d4-1623-49e4-950f-3fb3594ea8ba"
         help
             ESP32-S2 device ID in UUID form.
+            
+    config APPLICATION_CONNECT_PUBLISHING_ENABLE
+        bool "Enable MQTT connect publishing"
+        default y
+        help
+            Enable the publish of a message to report a successful connection with the broker.
+
+    config APPLICATION_CONNECT_PUBLISHING_TOPIC
+        string "Connect topic"
+        default "connected/"
+        depends on APPLICATION_CONNECT_PUBLISHING_ENABLE
+        help
+            Set the topic for the publishing of successful connection messages.
+            
+    config APPLICATION_CONNECT_PUBLISHING_MESSAGE
+        string "Connect message"
+        default "connected"
+        depends on APPLICATION_CONNECT_PUBLISHING_ENABLE
+        help
+            Set the message for the publishing of successful connection messages.
+
+    config APPLICATION_USER_DEFINED_SUBSCRIPTION_1_ENABLE
+        bool "Enable user defined subscription 1"
+        default y
+        help
+            Enable user defined subscription 1. When MQTT is connected client will subscribe to this.
+
+    config APPLICATION_USER_DEFINED_SUBSCRIPTION_1_TOPIC
+        string "User defined subscription 1 topic"
+        default "updates/"
+        depends on APPLICATION_USER_DEFINED_SUBSCRIPTION_1_ENABLE
+        help
+            Set the topic for user defined subscription 1.
+            
+    config APPLICATION_USER_DEFINED_SUBSCRIPTION_2_ENABLE
+        bool "Enable user defined subscription 2"
+        default n
+        help
+            Enable user defined subscription 2. When MQTT is connected client will subscribe to this.
+
+    config APPLICATION_USER_DEFINED_SUBSCRIPTION_2_TOPIC
+        string "User defined subscription 2 topic"
+        default "updates/"
+        depends on APPLICATION_USER_DEFINED_SUBSCRIPTION_2_ENABLE
+        help
+            Set the topic for user defined subscription 2.
 
 endmenu

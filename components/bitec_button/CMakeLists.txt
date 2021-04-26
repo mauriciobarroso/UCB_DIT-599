@@ -1,3 +1,3 @@
-idf_component_register(SRCS "bl0937.c"
+idf_component_register(SRCS "bitec_button.c"
                     INCLUDE_DIRS "include"
                     REQUIRES driver)
