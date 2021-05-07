@@ -1,0 +1,32 @@
+menu "BL0937 single-phase electric energy metering"
+	config BL0937_SEL_PIN
+	    int "SEL GPIO Num"
+	    default 11
+	    help
+	        GPIO number for BL0937 SEL pin.
+	
+	config BL0937_CF1_PIN
+	    int "CF1 GPIO Num"
+	    default 12
+	    help
+	        GPIO number for BL0937 CF1 pin.
+	
+	config BL0937_CF_PIN
+	    int "CF GPIO Num"
+	    default 13
+	    help
+	        GPIO number for BL0937 CF pin.
+	        
+	config BL0937_R_VOLTAGE
+	    int "Net resistor"
+	    default 1981
+	    help
+	        Resistor net value to measure voltage. To calculate this factor: Sum of upstream resistor plus downstream resistor.
+	        
+	config BL0937_R_CURRENT
+	    int "Alloy resistor"
+	    default 1
+	    help
+	        Alloy resistor value in miliohms to measure current.
+	        
+endmenu

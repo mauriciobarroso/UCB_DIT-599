@@ -25,6 +25,7 @@
 #include "bitec_mqtt.h"
 #include "bitec_button.h"
 #include "ws2812_led.h"
+#include "bl0937.h"
 
 /* macros --------------------------------------------------------------------*/
 
@@ -58,6 +59,9 @@ typedef struct
 	bool light;
 	int illumination;
 	bool presence;
+	float voltage;
+	float current;
+	float power;
 } payload_t;
 
 typedef struct
@@ -75,9 +79,10 @@ static TaskHandle_t send_data_handle = NULL;
 static bitec_wifi_t wifi;
 static bitec_mqtt_t mqtt;
 static bitec_button_t button;
+static bl0937_t bl0937;
 
 /* Application variables */
-json_message_t message;
+static json_message_t message;
 
 /* function declaration ------------------------------------------------------*/
 
@@ -121,6 +126,16 @@ void app_main(void)
 	/* Configure ADC */
 	adc1_config_width(ADC_WIDTH_BIT_13);
 	adc1_config_channel_atten(ADC_CHANNEL_6, ADC_ATTEN_DB_11);
+
+
+	/* Initialize BL0937 instance */
+	bl0937.cf_pin = CONFIG_BL0937_CF_PIN;
+	bl0937.cf1_pin = CONFIG_BL0937_CF1_PIN;
+	bl0937.sel_pin = CONFIG_BL0937_SEL_PIN;
+	bl0937.current_resistor = (float)CONFIG_BL0937_R_CURRENT / 1000;
+	bl0937.voltage_resistor = CONFIG_BL0937_R_VOLTAGE;
+
+	ESP_ERROR_CHECK(bl0937_init(&bl0937));
 
 	/* Initialize WS2812B LED */
 	ESP_ERROR_CHECK(ws2812_led_init());
@@ -185,7 +200,7 @@ static void get_sensors_task(void * arg)
 			message.payload.light = true;
 			gpio_set_level(GPIO_NUM_6, message.payload.light);
 		}
-		else if(message.payload.illumination >= 4000)
+		else if(message.payload.illumination >= 4000 && !message.payload.light)
 		{
 			message.payload.light = false;
 			gpio_set_level(GPIO_NUM_6, message.payload.light);
@@ -222,6 +237,11 @@ static void send_data_task(void * arg)
 
 		if(event_to_process != 0)
 		{
+			/* Get electrical parameter values */
+			message.payload.voltage = (float)bl0937_get_voltage(&bl0937);
+			message.payload.current = (float)bl0937_get_current(&bl0937);
+			message.payload.power = (float)bl0937_get_apparent_power(&bl0937);
+
 			/* Create JSON message */
 			char * string = NULL;
 			cJSON * device = NULL;
@@ -229,6 +249,9 @@ static void send_data_task(void * arg)
 			cJSON * light = NULL;
 			cJSON * illumination = NULL;
 			cJSON * presence = NULL;
+			cJSON * voltage = NULL;
+			cJSON * current = NULL;
+			cJSON * power = NULL;
 
 			cJSON * data = cJSON_CreateObject();
 			if(data == NULL)
@@ -248,7 +271,19 @@ static void send_data_task(void * arg)
 
 			illumination = cJSON_CreateNumber(message.payload.illumination);
 			if(illumination == NULL)
-					break;
+				break;
+
+			voltage = cJSON_CreateNumber(message.payload.voltage);
+			if(voltage == NULL)
+				break;
+
+			current = cJSON_CreateNumber(message.payload.current);
+			if(current == NULL)
+				break;
+
+			power = cJSON_CreateNumber(message.payload.power);
+			if(power == NULL)
+				break;
 
 			presence = cJSON_CreateNumber(message.payload.presence);
 			if(presence == NULL)
@@ -259,6 +294,9 @@ static void send_data_task(void * arg)
 			cJSON_AddItemToObject(payload, "light", light);
 			cJSON_AddItemToObject(payload, "illumination", illumination);
 			cJSON_AddItemToObject(payload, "presence", presence);
+			cJSON_AddItemToObject(payload, "voltage", voltage);
+			cJSON_AddItemToObject(payload, "current", current);
+			cJSON_AddItemToObject(payload, "power", power);
 
 			string = cJSON_Print(data);
 
@@ -290,7 +328,7 @@ static esp_err_t nvs_init(void)
 		ret = nvs_flash_secure_init(&nvs_sec_cfg);
 	}
 	else
-		ret = ESP_FAIL;
+		return ESP_FAIL;
 
 	return ret;
 }
