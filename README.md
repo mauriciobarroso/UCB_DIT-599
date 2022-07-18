@@ -1,2 +1,1 @@
-# smartLight
-Smart light control and monitoring
+# Proyecto final para el módulo de Proyecto Final del Diplomado
